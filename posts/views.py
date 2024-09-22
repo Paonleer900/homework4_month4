@@ -1,12 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Post, Comment
-from .forms import CommentForm, PostModelForm
+from .forms import CommentForm, PostForm
+from django.contrib.auth.decorators import login_required
 
 
 def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
 
-    if request.method == 'POST':
+    if request.method == 'GET':
         form = CommentForm(request.POST)
         if form.is_valid():
             comment = form.save(commit=False)
@@ -26,13 +27,14 @@ def post_list(request):
     return render(request, 'post_list.html', {'posts': posts})
 
 
-def create_post(request):
-    if request.method == 'POST':
-        form = PostModelForm(request.POST)
+def post_create(request):
+    if request.method == 'GET':
+        form = PostForm()
+    elif request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            post = form.save(commit=False)
+            post.save()
             return redirect('post_list')
-    else:
-        form = PostModelForm()
 
     return render(request, 'create_post.html', {'form': form})
